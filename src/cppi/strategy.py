@@ -72,7 +72,6 @@ class CppiStrategy(StatefulStrategy):
         return self.ptf_protected_value[last_dt]
 
     def upon_notification(self, data_feed, *args, **kwargs):
-        print(f"CPPI strategy got a data feed notification.")
         price = 0.5 * (data_feed.get_price_bid() + data_feed.get_price_ask())
         timestamp = data_feed.get_timestamp()
         return self.update(price, timestamp)
@@ -143,8 +142,10 @@ class CppiStrategy(StatefulStrategy):
             self.shares_owned[timestamp] = sh_count
 
             # Bond investment update
-            new_bond_investment = ptf_total - new_prot_level
+            new_bond_investment = ptf_total - new_exposure
             self.riskfree_bond[timestamp] = new_bond_investment
+
+            print(f"CPPI reset at a NAV of {100.0 * ptf_total / self.ptf_initial_value:.2f}% on {timestamp}.")
 
         else:
             # Keep track of time

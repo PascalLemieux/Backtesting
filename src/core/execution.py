@@ -12,7 +12,6 @@ class ExecutionEngine(DataFeedObserver):
         self.strategy: StatefulStrategy = strategy
 
     def upon_notification(self, feed, *args, **kwargs):
-        print(f"Execution notified.")
         self.strategy.upon_notification(feed, *args, **kwargs)
 
     def initialize(self, data: DataFeed):

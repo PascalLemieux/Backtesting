@@ -1,3 +1,5 @@
+import datetime as dt
+
 from src.core.execution import ExecutionEngine
 from src.core.analytics import AnalyticsEngine
 from src.core.context.engine import ContextualEngine
@@ -12,9 +14,9 @@ if __name__ == '__main__':
     # 1: ??
 
     path_ = "C:\\Users\\pace8\\PycharmProjects\\Backtesting\\dataset\\ou.csv"
-    feed = MonteCarloDataFeed(csv_path=path_, columns=[1, ])
+    feed = MonteCarloDataFeed(path_, columns=[1, ])
 
-    cppi = CppiStrategy(floor=0.8, initial_value=100000.0)
+    cppi = CppiStrategy(floor=0.8, initial_value=100000.0, reset_freq=dt.timedelta(days=20))
     exec_cppi = ExecutionEngine(cppi)
 
     analytics = AnalyticsEngine()

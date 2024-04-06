@@ -49,3 +49,4 @@ class ContextualEngine(object):
     def start(self, ):
         self.data.start()
         self.analytics.aggregate(self.agent)
+        print(f"Backtest ended successfully.")

@@ -7,19 +7,31 @@ from src.core.context.schedule import TimeKeeper
 
 class MonteCarloDataFeed(DataFeed):
 
-    def __init__(self, csv_path, columns=None):
+    def __init__(self, csv_path_or_df, columns=None):
+
         super().__init__()
-        self.file_path = csv_path
+
         self.dataset: Optional[pd.DataFrame] = None
+
+        if isinstance(csv_path_or_df, pd.DataFrame):
+            self.dataset = csv_path_or_df
+
+        if not isinstance(csv_path_or_df, pd.DataFrame):
+            self.file_path = csv_path_or_df
+            self.__initialize()
+
         self.columns = columns if columns is not None else [0, ]
+        assert isinstance(self.columns, list)
 
         # Fields to be queried by observers
         self.time = TimeKeeper()
         self.price: Optional[float] = None
 
-        self.initialize()
-
     def initialize(self) -> bool:
+        assert isinstance(self.dataset, pd.DataFrame)
+        return True
+
+    def __initialize(self):
         # Load the dataframe from disk
         df = pd.read_csv(self.file_path)
 
@@ -38,8 +50,16 @@ class MonteCarloDataFeed(DataFeed):
         # Set dataset locally
         self.dataset = df
 
-        # Confirm we're good
-        return True
+    def sanity_check(self):
+
+        # Required columns are there
+        df_cols = self.dataset.columns
+        for c in self.columns:
+            assert c in df_cols
+
+        # Indexed correctly (hopefully if start and end are ok...)
+        assert isinstance(self.dataset.index.min(), dt.datetime)
+        assert isinstance(self.dataset.index.max(), dt.datetime)
 
     def get_timestamp(self):
         return self.time.timestamp
@@ -69,7 +89,6 @@ class MonteCarloDataFeed(DataFeed):
         self.time.reset(date=self.dataset.index.min() - epsilon)
 
         for k in range(len(self.dataset)):
-
             # Update current time
             self.time.update(self.dataset.index[k])
 
