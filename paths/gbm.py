@@ -3,6 +3,7 @@ import pandas as pd
 
 from paths.utils.samples import RandomNumberGenerator1d
 from paths.base import StochasticProcess
+from paths.utils.time import TimeGenerator
 
 
 class GeometricBrownianMotion(StochasticProcess):
@@ -18,10 +19,11 @@ class GeometricBrownianMotion(StochasticProcess):
     paths = gbm(1000)
 
     """
+
     def __init__(self, volatility: float, drift: float = 0.0, initial_value: float = 1.0,
-                 maturity: float = 1.0, time_intervals: int = 365):
+                 maturity: float = 1.0, time_intervals: int = 365, seed: int = 0):
         super().__init__(volatility=volatility, initial_value=initial_value,
-                         maturity=maturity, time_intervals=time_intervals)
+                         maturity=maturity, time_intervals=time_intervals, seed=seed)
 
         # GBM Characteristic
         self.drift = float(drift)  # annual
@@ -76,6 +78,33 @@ class GeometricBrownianMotion(StochasticProcess):
     def theoretical_std_dev(self, spot_0: float = None, maturity: float = None,
                             drift: float = None, sigma: float = None):
         return np.sqrt(self.theoretical_variance(spot_0, maturity, drift, sigma))
+
+
+class GeometricBrownianMotionCandle(GeometricBrownianMotion):
+
+    def __init__(self, volatility: float, sampling_rate: int = 10, drift: float = 0.0, initial_value: float = 1.0,
+                 maturity: float = 1.0, time_intervals: int = 365):
+        super().__init__(volatility=volatility, drift=drift, initial_value=initial_value,
+                         maturity=maturity, time_intervals=time_intervals)
+
+        # How many samples per (output) period
+        self.sampling_rate = int(sampling_rate)
+
+        # How many samples per (output) period
+        self.time = TimeGenerator(maturity=maturity, intervals=time_intervals * self.sampling_rate)
+
+    def generate(self, nb_paths: int = 1, regenerate: bool = True, rule="1D"):
+        # Generate the paths according to our GBM methodology
+        super().generate(nb_paths=nb_paths, regenerate=regenerate)
+        df_high_sampling = self.to_datetime_index()
+
+        # Reference the time origin
+        time_origin = df_high_sampling.index.min()
+
+        # Group the df for each path (OHLC)
+        # into a dict indexed by path number (as int)
+        paths = {i: df_high_sampling.iloc[:, i].resample(rule, origin=time_origin).ohlc() for i in range(nb_paths)}
+        return paths
 
 
 if __name__ == '__main__':

@@ -1,6 +1,8 @@
 import copy
 from abc import ABC, abstractmethod
 from typing import Optional
+
+import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 from paths.utils.time import TimeGenerator
@@ -9,7 +11,7 @@ from paths.utils.time import TimeGenerator
 class StochasticProcess(ABC):
 
     def __init__(self, volatility: float, maturity: float = 1.0, time_intervals: int = 365,
-                 initial_value: float = 1.0):
+                 initial_value: float = 1.0, seed: int = None):
         #
         # Common to all stochastic processes
         self.volatility = max(0.0, float(volatility))
@@ -21,6 +23,9 @@ class StochasticProcess(ABC):
         # Monte Carlo paths
         self.paths: Optional[pd.DataFrame] = None
         self.nb_paths: int = 0
+
+        self.seed = seed if seed is not None else 0
+        np.random.seed(self.seed)
 
     @property
     def schedule(self):

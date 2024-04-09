@@ -39,7 +39,7 @@ class ContextualEngine(object):
         print(f"Initializing {self.agent}")
 
         # Initialize the analytics
-        self.analytics.initialize(strategy=self.agent.strategy)
+        self.analytics.initialize(agent=self.agent)
         print(f"Initializing {self.analytics}")
 
         # Initialize the data feed
@@ -47,6 +47,18 @@ class ContextualEngine(object):
         print(f"Initializing {self.data}")
 
     def start(self, ):
+
+        # Start the flow of data
         self.data.start()
-        self.analytics.aggregate(self.agent)
+
+        # Store this realization
+        self.analytics.store(self.agent)
+
         print(f"Backtest ended successfully.")
+
+
+def start_bt(bt):
+    try:
+        bt.start()
+    except Exception as exc:
+        print(exc)
